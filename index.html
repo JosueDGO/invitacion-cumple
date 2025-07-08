@@ -27,14 +27,16 @@
             height: 100vh;
             display: flex;
             /* Alineación de las imágenes en una fila */
-            overflow-x: scroll;
-            /* Permite el desplazamiento horizontal */
+            overflow-x: hidden;
+            /* Oculta cualquier contenido fuera del contenedor */
             scroll-snap-type: x mandatory;
             /* Habilita el "snap" (ajuste automático al final de cada imagen) */
             scroll-behavior: smooth;
             /* Desplazamiento suave */
             flex-direction: row;
             /* Las imágenes estarán en fila */
+            transition: transform 1s ease;
+            /* Transición suave entre las imágenes */
         }
 
         .page-image {
@@ -49,12 +51,36 @@
             /* Alinea la imagen en el inicio del contenedor */
         }
 
-        /* Si quieres un desplazamiento vertical en lugar de horizontal, 
-           cambia "overflow-x" por "overflow-y" y ajusta "flex-direction" */
+        /* Para prevenir márgenes en dispositivos móviles */
+        body,
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        img {
+            display: block;
+            /* Elimina el espacio blanco debajo de la imagen */
+        }
+
+        /* Estilo de carga para evitar pantallas en blanco al principio */
+        .loading {
+            background: #f0f0f0;
+            /* Fondo blanco mientras carga */
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- Este contenedor es visible mientras las imágenes están cargando -->
+    <div id="loading-screen" class="loading">Cargando...</div>
 
     <audio id="bgm" loop playsinline>
         <source src="https://josuedgo.github.io/invitacion-cumple/song.mp3" type="audio/mp3" />
@@ -68,14 +94,14 @@
         const images = [
             "https://josuedgo.github.io/invitacion-cumple/inv_v3.png",
             "https://josuedgo.github.io/invitacion-cumple/inv_v3_pg2"
-
-            // Agrega tantas imágenes como tengas
         ];
 
         let currentPage = 0;
         const imageContainer = document.getElementById("image-container");
         const audio = document.getElementById("bgm");
+        const loadingScreen = document.getElementById("loading-screen");
 
+        // Función para renderizar todas las imágenes
         function renderImages() {
             images.forEach(imageSrc => {
                 const img = document.createElement("img");
@@ -83,19 +109,36 @@
                 img.classList.add("page-image");
                 imageContainer.appendChild(img);
             });
+
+            // Una vez que las imágenes están cargadas, eliminamos el loading
+            loadingScreen.style.display = "none";
         }
 
+        // Función para cambiar a la siguiente imagen
+        function goToNextPage() {
+            if (currentPage < images.length - 1) {
+                currentPage++;
+            } else {
+                currentPage = 0;
+            }
+            imageContainer.style.transform = `translateX(-${100 * currentPage}vw)`; // Desplaza la imagen
+        }
+
+        // Función para iniciar la experiencia
         function startExperience() {
             audio.volume = 1;
             audio.play().catch(e => console.warn('Error al reproducir audio:', e));
             renderImages();
+
+            // Cambiar la imagen cada 3 segundos (o lo que prefieras)
+            setInterval(goToNextPage, 3000);
 
             // Remueve los listeners para que no se vuelva a ejecutar
             document.removeEventListener('click', startExperience);
             document.removeEventListener('touchstart', startExperience);
         }
 
-        // Agrega listener a todo el documento para capturar primer toque o clic
+        // Agregar listeners para clic o toque en dispositivos móviles
         document.addEventListener('click', startExperience, { once: true });
         document.addEventListener('touchstart', startExperience, { once: true });
     </script>
