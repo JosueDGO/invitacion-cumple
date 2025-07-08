@@ -17,132 +17,189 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
-            font-family: Arial, sans-serif;
         }
 
-        /* Contenedor principal que ocupa toda la pantalla */
-        #image-container {
+        /* Contenedor del carrusel */
+        .carousel {
             width: 100%;
-            height: 100vh;
+            height: 100%;
+            position: relative;
             display: flex;
-            /* Alineación de las imágenes en una fila */
-            overflow-x: hidden;
-            /* Oculta cualquier contenido fuera del contenedor */
-            scroll-snap-type: x mandatory;
-            /* Habilita el "snap" (ajuste automático al final de cada imagen) */
-            scroll-behavior: smooth;
-            /* Desplazamiento suave */
-            flex-direction: row;
-            /* Las imágenes estarán en fila */
-            transition: transform 1s ease;
-            /* Transición suave entre las imágenes */
+            transition: transform 0.5s ease-in-out;
         }
 
-        .page-image {
+        /* Estilo para las imágenes */
+        .carousel img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Asegura que la imagen se ajuste bien sin distorsionarse */
             flex-shrink: 0;
-            width: 100vw;
-            /* La imagen ocupa el 100% de la pantalla */
-            height: 100vh;
-            /* La imagen ocupa el 100% de la pantalla */
-            object-fit: cover;
-            /* Asegura que la imagen cubra completamente el área */
-            scroll-snap-align: start;
-            /* Alinea la imagen en el inicio del contenedor */
         }
 
-        /* Para prevenir márgenes en dispositivos móviles */
-        body,
-        html {
-            height: 100%;
-            overflow: hidden;
-        }
-
-        img {
-            display: block;
-            /* Elimina el espacio blanco debajo de la imagen */
-        }
-
-        /* Estilo de carga para evitar pantallas en blanco al principio */
-        .loading {
-            background: #f0f0f0;
-            /* Fondo blanco mientras carga */
+        /* Capa para detectar clic y reproducción del audio */
+        #clickLayer {
             position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            z-index: 2;
+            cursor: pointer;
+        }
+
+        /* Botones de navegación */
+        .carousel-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.3);
+            color: white;
+            border: none;
+            font-size: 2rem;
+            padding: 1rem;
+            cursor: pointer;
+            z-index: 3;
+            transition: background-color 0.3s ease;
+        }
+
+        .carousel-button:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .left-button {
+            left: 10px;
+        }
+
+        .right-button {
+            right: 10px;
         }
     </style>
 </head>
 
 <body>
-
-    <!-- Este contenedor es visible mientras las imágenes están cargando -->
-    <div id="loading-screen" class="loading">Cargando...</div>
-
     <audio id="bgm" loop playsinline>
-        <source src="https://josuedgo.github.io/invitacion-cumple/song.mp3" type="audio/mp3" />
+        <source src="song.mp3" type="audio/mp3" />
         Tu navegador no soporta audio.
     </audio>
 
-    <!-- Contenedor que mostrará las imágenes -->
-    <div id="image-container"></div>
+    <!-- Capa que detecta clic -->
+    <div id="clickLayer"></div>
+
+    <!-- Carrusel de imágenes -->
+    <div class="carousel">
+        <img src="pagina1.png" class="page" id="page1" />
+        <img src="pagina2.png" class="page" id="page2" />
+    </div>
+
+    <!-- Botones de navegación -->
+    <button class="carousel-button left-button">&#10094;</button>
+    <button class="carousel-button right-button">&#10095;</button>
 
     <script>
-        const images = [
-            "https://josuedgo.github.io/invitacion-cumple/inv_v3.png",
-            "https://josuedgo.github.io/invitacion-cumple/inv_v3_pg2"
-        ];
+        const audio = document.getElementById('bgm');
+        const layer = document.getElementById('clickLayer');
+        const carousel = document.querySelector('.carousel');
+        const images = document.querySelectorAll('.carousel img');
+        const leftButton = document.querySelector('.left-button');
+        const rightButton = document.querySelector('.right-button');
 
-        let currentPage = 0;
-        const imageContainer = document.getElementById("image-container");
-        const audio = document.getElementById("bgm");
-        const loadingScreen = document.getElementById("loading-screen");
+        let isTouchStart = false;
+        let startX = 0;
+        let currentIndex = 0; // Índice de la imagen actual
 
-        // Función para renderizar todas las imágenes
-        function renderImages() {
-            images.forEach(imageSrc => {
-                const img = document.createElement("img");
-                img.src = imageSrc;
-                img.classList.add("page-image");
-                imageContainer.appendChild(img);
+        // Función para iniciar el audio
+        const startAudio = () => {
+            audio.play().then(() => {
+                console.log("Audio iniciado");
+            }).catch(err => {
+                console.warn("No se pudo reproducir:", err);
             });
+            layer.style.display = 'none'; // Ocultar capa tras primer clic
+        };
 
-            // Una vez que las imágenes están cargadas, eliminamos el loading
-            loadingScreen.style.display = "none";
-        }
+        // Detectar el primer clic o toque para iniciar el audio
+        layer.addEventListener('click', startAudio);
+        layer.addEventListener('touchstart', startAudio);
 
-        // Función para cambiar a la siguiente imagen
-        function goToNextPage() {
-            if (currentPage < images.length - 1) {
-                currentPage++;
-            } else {
-                currentPage = 0;
+        // Función para cambiar la imagen
+        const changeImage = (direction) => {
+            if (direction === 'next') {
+                currentIndex = (currentIndex + 1) % images.length; // Avanza a la siguiente imagen (circular)
+            } else if (direction === 'prev') {
+                currentIndex = (currentIndex - 1 + images.length) % images.length; // Retrocede a la anterior (circular)
             }
-            imageContainer.style.transform = `translateX(-${100 * currentPage}vw)`; // Desplaza la imagen
-        }
 
-        // Función para iniciar la experiencia
-        function startExperience() {
-            audio.volume = 1;
-            audio.play().catch(e => console.warn('Error al reproducir audio:', e));
-            renderImages();
+            // Cambiar la posición del carrusel según el índice
+            const moveTo = -currentIndex * 100; // Movimiento a la izquierda en porcentaje
+            carousel.style.transform = `translateX(${moveTo}%)`;
+        };
 
-            // Cambiar la imagen cada 3 segundos (o lo que prefieras)
-            setInterval(goToNextPage, 3000);
+        // Detectar dirección de deslizamiento
+        let startSwipeX = 0;
 
-            // Remueve los listeners para que no se vuelva a ejecutar
-            document.removeEventListener('click', startExperience);
-            document.removeEventListener('touchstart', startExperience);
-        }
+        carousel.addEventListener('mousedown', (e) => {
+            startSwipeX = e.clientX;
+            isTouchStart = true;
+        });
 
-        // Agregar listeners para clic o toque en dispositivos móviles
-        document.addEventListener('click', startExperience, { once: true });
-        document.addEventListener('touchstart', startExperience, { once: true });
+        carousel.addEventListener('touchstart', (e) => {
+            startSwipeX = e.touches[0].clientX;
+            isTouchStart = true;
+        });
+
+        const endSwipe = () => {
+            isTouchStart = false;
+        };
+
+        carousel.addEventListener('mouseup', (e) => {
+            const endSwipeX = e.clientX;
+            if (startSwipeX - endSwipeX > 50) { // Deslizar a la derecha
+                changeImage('next');
+            } else if (endSwipeX - startSwipeX > 50) { // Deslizar a la izquierda
+                changeImage('prev');
+            }
+            endSwipe();
+        });
+
+        carousel.addEventListener('touchend', (e) => {
+            const endSwipeX = e.changedTouches[0].clientX;
+            if (startSwipeX - endSwipeX > 50) { // Deslizar a la derecha
+                changeImage('next');
+            } else if (endSwipeX - startSwipeX > 50) { // Deslizar a la izquierda
+                changeImage('prev');
+            }
+            endSwipe();
+        });
+
+        // Agregar eventos para móvil y escritorio
+        carousel.addEventListener('mousemove', (e) => {
+            if (isTouchStart) {
+                e.preventDefault();
+                const moveX = e.clientX;
+                carousel.style.transform = `translateX(${(currentIndex * -100) + (moveX - startSwipeX)}%)`;
+            }
+        });
+
+        carousel.addEventListener('touchmove', (e) => {
+            if (isTouchStart) {
+                e.preventDefault();
+                const moveX = e.touches[0].clientX;
+                carousel.style.transform = `translateX(${(currentIndex * -100) + (moveX - startSwipeX)}%)`;
+            }
+        });
+
+        // Funciones para los botones
+        leftButton.addEventListener('click', () => {
+            startAudio();
+            changeImage('prev');
+        });
+
+        rightButton.addEventListener('click', () => {
+            startAudio();
+            changeImage('next');
+        });
     </script>
-
 </body>
 
 </html>
