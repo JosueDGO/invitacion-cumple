@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invitación de Cumpleaños 🎉</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        embed {
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #clickLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <audio id="bgm" loop>
+        <source src="song.mp3" type="audio/mp3">
+        Tu navegador no soporta audio.
+    </audio>
+
+    <!-- Capa que detecta clic -->
+    <div id="clickLayer"></div>
+
+    <!-- El PDF en pantalla completa -->
+    <embed src="inv_v3.pdf" type="application/pdf" />
+
+    <script>
+        const audio = document.getElementById('bgm');
+        const layer = document.getElementById('clickLayer');
+
+        const startAudio = () => {
+            audio.play().catch(err => {
+                console.warn("No se pudo reproducir:", err);
+            });
+            layer.style.display = 'none'; // ocultar capa tras primer clic
+        };
+
+        layer.addEventListener('click', startAudio);
+        layer.addEventListener('touchstart', startAudio);
+    </script>
+</body>
+
+</html>
