@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+<!-- v3 -->
 
 <head>
     <meta charset="UTF-8" />
@@ -39,8 +40,8 @@
 </head>
 
 <body>
-    <audio id="bgm" loop>
-        <source src="song.mp3" type="audio/mp3">
+    <audio id="bgm" loop playsinline>
+        <source src="song.mp3" type="audio/mp3" />
         Tu navegador no soporta audio.
     </audio>
 
@@ -54,8 +55,12 @@
         const audio = document.getElementById('bgm');
         const layer = document.getElementById('clickLayer');
 
+        audio.volume = 1; // Asegura que volumen esté alto
+
         const startAudio = () => {
-            audio.play().catch(err => {
+            audio.play().then(() => {
+                console.log("Audio iniciado");
+            }).catch(err => {
                 console.warn("No se pudo reproducir:", err);
             });
             layer.style.display = 'none'; // ocultar capa tras primer clic
