@@ -18,21 +18,39 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            font-family: Arial, sans-serif;
         }
 
-        #pdf-container {
-            width: 90vw;
-            height: 80vh;
-            border: 1px solid #ccc;
-            overflow: auto;
-            background: white;
+        /* Contenedor principal que ocupa toda la pantalla */
+        #image-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            /* Alineación de las imágenes en una fila */
+            overflow-x: scroll;
+            /* Permite el desplazamiento horizontal */
+            scroll-snap-type: x mandatory;
+            /* Habilita el "snap" (ajuste automático al final de cada imagen) */
+            scroll-behavior: smooth;
+            /* Desplazamiento suave */
+            flex-direction: row;
+            /* Las imágenes estarán en fila */
         }
 
-        canvas {
-            display: block;
-            margin: 0 auto 10px auto;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        .page-image {
+            flex-shrink: 0;
+            width: 100vw;
+            /* La imagen ocupa el 100% de la pantalla */
+            height: 100vh;
+            /* La imagen ocupa el 100% de la pantalla */
+            object-fit: cover;
+            /* Asegura que la imagen cubra completamente el área */
+            scroll-snap-align: start;
+            /* Alinea la imagen en el inicio del contenedor */
         }
+
+        /* Si quieres un desplazamiento vertical en lugar de horizontal, 
+           cambia "overflow-x" por "overflow-y" y ajusta "flex-direction" */
     </style>
 </head>
 
@@ -43,37 +61,34 @@
         Tu navegador no soporta audio.
     </audio>
 
-    <div id="pdf-container"></div>
+    <!-- Contenedor que mostrará las imágenes -->
+    <div id="image-container"></div>
 
-    <!-- PDF.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
     <script>
-        const url = 'https://josuedgo.github.io/invitacion-cumple/inv_v3.pdf';
-        const pdfContainer = document.getElementById('pdf-container');
-        const audio = document.getElementById('bgm');
+        const images = [
+            "https://josuedgo.github.io/invitacion-cumple/inv_v3.png",
+            "https://josuedgo.github.io/invitacion-cumple/inv_v3_pg2"
 
-        // Configura PDF.js worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
+            // Agrega tantas imágenes como tengas
+        ];
 
-        async function renderPDF(url) {
-            const pdf = await pdfjsLib.getDocument(url).promise;
-            pdfContainer.innerHTML = ''; // limpia el contenedor
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const viewport = page.getViewport({ scale: 1.5 });
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-                pdfContainer.appendChild(canvas);
-            }
+        let currentPage = 0;
+        const imageContainer = document.getElementById("image-container");
+        const audio = document.getElementById("bgm");
+
+        function renderImages() {
+            images.forEach(imageSrc => {
+                const img = document.createElement("img");
+                img.src = imageSrc;
+                img.classList.add("page-image");
+                imageContainer.appendChild(img);
+            });
         }
 
         function startExperience() {
             audio.volume = 1;
             audio.play().catch(e => console.warn('Error al reproducir audio:', e));
-            renderPDF(url);
+            renderImages();
 
             // Remueve los listeners para que no se vuelva a ejecutar
             document.removeEventListener('click', startExperience);
@@ -84,6 +99,7 @@
         document.addEventListener('click', startExperience, { once: true });
         document.addEventListener('touchstart', startExperience, { once: true });
     </script>
+
 </body>
 
 </html>
