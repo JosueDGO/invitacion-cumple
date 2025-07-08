@@ -33,22 +33,6 @@
             margin: 0 auto 10px auto;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
         }
-
-        #clickLayer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            cursor: pointer;
-            z-index: 10;
-            background: rgba(255, 255, 255, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5em;
-            color: #333;
-        }
     </style>
 </head>
 
@@ -59,17 +43,13 @@
         Tu navegador no soporta audio.
     </audio>
 
-    <div id="clickLayer">Toca para iniciar la invitación con música 🎵</div>
-
     <div id="pdf-container"></div>
 
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
     <script>
-        /* const url = 'inv_v3.pdf'; // Ruta a tu PDF */
         const url = 'https://josuedgo.github.io/invitacion-cumple/inv_v3.pdf';
         const pdfContainer = document.getElementById('pdf-container');
-        const clickLayer = document.getElementById('clickLayer');
         const audio = document.getElementById('bgm');
 
         // Configura PDF.js worker
@@ -94,12 +74,15 @@
             audio.volume = 1;
             audio.play().catch(e => console.warn('Error al reproducir audio:', e));
             renderPDF(url);
-            clickLayer.style.display = 'none';
+
+            // Remueve los listeners para que no se vuelva a ejecutar
+            document.removeEventListener('click', startExperience);
+            document.removeEventListener('touchstart', startExperience);
         }
 
-        clickLayer.addEventListener('click', startExperience);
-        clickLayer.addEventListener('touchstart', startExperience);
-
+        // Agrega listener a todo el documento para capturar primer toque o clic
+        document.addEventListener('click', startExperience, { once: true });
+        document.addEventListener('touchstart', startExperience, { once: true });
     </script>
 </body>
 
