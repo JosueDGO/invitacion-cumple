@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Invitación de Cumpleaños 🎉</title>
+
     <style>
         html,
         body {
@@ -12,35 +13,46 @@
             padding: 0;
             height: 100%;
             width: 100%;
-            background-color: #f0f0f0;
+            background-color: #222;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* Contenedor del carrusel */
-        .carousel {
+        /* Envoltorio que muestra solo una imagen */
+        .carousel-wrapper {
             width: 100%;
             height: 100%;
+            overflow: hidden;
             position: relative;
+        }
+
+        /* Carrusel que contiene todas las imágenes */
+        .carousel {
             display: flex;
+            width: 200%;
+            /* 2 imágenes = 200% */
+            height: 100%;
             transition: transform 0.5s ease-in-out;
         }
 
-        /* Estilo para las imágenes */
+        /* Cada imagen ocupa el 50% del ancho del carrusel */
         .carousel img {
-            width: 100%;
-            height: 100%;
+            width: 50%;
+            height: 100vh;
             object-fit: contain;
-            /* Asegura que la imagen se ajusta sin recortar ni deformar */
             object-position: center;
-            /* Centra la imagen si es más pequeña que el contenedor */
             flex-shrink: 0;
-            /* Para evitar que se reduzca el tamaño de la imagen */
+            background-color: #222;
         }
 
-        /* Capa para detectar clic y reproducción del audio */
+        @media (min-aspect-ratio: 16/10) {
+            .carousel img {
+                object-fit: contain;
+            }
+        }
+
         #clickLayer {
             position: absolute;
             top: 0;
@@ -51,7 +63,6 @@
             cursor: pointer;
         }
 
-        /* Botones de navegación */
         .carousel-button {
             position: absolute;
             top: 50%;
@@ -89,10 +100,12 @@
     <!-- Capa que detecta clic -->
     <div id="clickLayer"></div>
 
-    <!-- Carrusel de imágenes -->
-    <div class="carousel">
-        <img src="pagina1.png" class="page" id="page1" />
-        <img src="pagina2.png" class="page" id="page2" />
+    <!-- Carrusel de imágenes envuelto -->
+    <div class="carousel-wrapper">
+        <div class="carousel">
+            <img src="pagina1.png" class="page" id="page1" />
+            <img src="pagina2.png" class="page" id="page2" />
+        </div>
     </div>
 
     <!-- Botones de navegación -->
@@ -109,36 +122,32 @@
 
         let isTouchStart = false;
         let startX = 0;
-        let currentIndex = 0; // Índice de la imagen actual
+        let currentIndex = 0;
 
-        // Función para iniciar el audio
         const startAudio = () => {
             audio.play().then(() => {
                 console.log("Audio iniciado");
             }).catch(err => {
                 console.warn("No se pudo reproducir:", err);
             });
-            layer.style.display = 'none'; // Ocultar capa tras primer clic
+            layer.style.display = 'none';
         };
 
-        // Detectar el primer clic o toque para iniciar el audio
         layer.addEventListener('click', startAudio);
         layer.addEventListener('touchstart', startAudio);
 
-        // Función para cambiar la imagen
         const changeImage = (direction) => {
             if (direction === 'next') {
-                currentIndex = (currentIndex + 1) % images.length; // Avanza a la siguiente imagen (circular)
+                currentIndex = (currentIndex + 1) % images.length;
             } else if (direction === 'prev') {
-                currentIndex = (currentIndex - 1 + images.length) % images.length; // Retrocede a la anterior (circular)
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
             }
 
-            // Cambiar la posición del carrusel según el índice
-            const moveTo = -currentIndex * 100; // Movimiento a la izquierda en porcentaje
+            const moveTo = -currentIndex * (100 / images.length); // 🔁 Ajustado aquí
             carousel.style.transform = `translateX(${moveTo}%)`;
         };
 
-        // Detectar dirección de deslizamiento
+
         let startSwipeX = 0;
 
         carousel.addEventListener('mousedown', (e) => {
@@ -157,9 +166,9 @@
 
         carousel.addEventListener('mouseup', (e) => {
             const endSwipeX = e.clientX;
-            if (startSwipeX - endSwipeX > 50) { // Deslizar a la derecha
+            if (startSwipeX - endSwipeX > 50) {
                 changeImage('next');
-            } else if (endSwipeX - startSwipeX > 50) { // Deslizar a la izquierda
+            } else if (endSwipeX - startSwipeX > 50) {
                 changeImage('prev');
             }
             endSwipe();
@@ -167,15 +176,14 @@
 
         carousel.addEventListener('touchend', (e) => {
             const endSwipeX = e.changedTouches[0].clientX;
-            if (startSwipeX - endSwipeX > 50) { // Deslizar a la derecha
+            if (startSwipeX - endSwipeX > 50) {
                 changeImage('next');
-            } else if (endSwipeX - startSwipeX > 50) { // Deslizar a la izquierda
+            } else if (endSwipeX - startSwipeX > 50) {
                 changeImage('prev');
             }
             endSwipe();
         });
 
-        // Agregar eventos para móvil y escritorio
         carousel.addEventListener('mousemove', (e) => {
             if (isTouchStart) {
                 e.preventDefault();
@@ -192,7 +200,6 @@
             }
         });
 
-        // Funciones para los botones
         leftButton.addEventListener('click', () => {
             startAudio();
             changeImage('prev');
